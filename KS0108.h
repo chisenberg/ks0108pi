@@ -21,11 +21,12 @@ void GLCD_ClearBuffer();
 void GLCD_SyncBuffer();
 
 void GLCD_Bitmap(uint8_t *);
-void GLCD_SetPixel(uint8_t , uint8_t , uint8_t );
+void GLCD_SetPixel(uint8_t , uint8_t);
+void GLCD_SetPixels(uint8_t , uint8_t, uint8_t);
 void GLCD_DrawRect(uint8_t, uint8_t, uint8_t, uint8_t);
 void GLCD_DrawLine(uint8_t , uint8_t , uint8_t , uint8_t);
 
-void GLCD_WriteString(char *);
-void GLCD_WriteChar(char );
+void GLCD_WriteString(uint8_t x, uint8_t y, char * stringToWrite, uint8_t* font);
+void GLCD_WriteChar(uint8_t, uint8_t, char, uint8_t* font);
 
 

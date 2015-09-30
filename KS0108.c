@@ -8,7 +8,6 @@
 */
 
 #include "KS0108.h"
-#include "font5x8.h"
 #include <bcm2835.h>
 #include <stdio.h>
 #include <string.h>
@@ -49,59 +48,99 @@ void GLCD_SyncBuffer(){
 void GLCD_DrawRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h){
 	for(int nx=x; nx<x+w ; nx++){
 		for(int ny=y; ny<y+h ; ny++){
-			GLCD_SetPixel(nx,ny,1);
+			GLCD_SetPixel(nx,ny);
 		}
 	}
 }
+
 
 void GLCD_DrawLine(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1){
-	float deltax = x1 - x0;
-	float deltay = y1 - y0;
-	float error = 0;
-	float deltaerr = abs (deltay / deltax);    // Assume deltax != 0 (line is not vertical),
-	// note that this division needs to be done in a way that preserves the fractional part
-	int y = y0;
-	for (int x=x0; x<x1; x++){
-		GLCD_SetPixel(x,y,1);
-		error = error + deltaerr;
-		while(error >= 0.5){
-			GLCD_SetPixel(x,y,1);
-			y = y - signbit(y1 - y0);
-			error = error - 1.0;
+	int dx = abs(x1-x0), sx = x0<x1 ? 1 : -1;
+	int dy = abs(y1-y0), sy = y0<y1 ? 1 : -1; 
+	int err = (dx>dy ? dx : -dy)/2, e2;
+
+	for(;;){
+		GLCD_SetPixel(x0,y0);
+		if (x0==x1 && y0==y1) break;
+		e2 = err;
+		if (e2 >-dx) { err -= dy; x0 += sx; }
+		if (e2 < dy) { err += dx; y0 += sy; }
+	}
+
+}
+
+void GLCD_WriteChar(uint8_t x, uint8_t y, char charToWrite, uint8_t* font)
+{
+	int firstChar = font[4];
+	int charCount = font[5];
+	int charHeight = font[3];
+	int charWidth = font[2];
+	int sum= 6;
+	int fixed_width = 1;
+
+	if( (font[0] + font [1]) != 0x00){
+		fixed_width  = 0;
+	}
+
+
+	if( !fixed_width ){
+		charWidth = font[6+(charToWrite-firstChar)];
+		sum += charCount;
+	}
+	
+	//jumps to the char data position on the array.
+	for(int i=firstChar; i<charToWrite; i++){
+		if( !fixed_width )
+			sum += font[6+i-firstChar] * ceil(charHeight/8.0);
+		else
+			sum += charWidth * ceil(charHeight/8.0);
+	}
+
+	for(int line=0; line < charHeight; line+=8){
+		for(int col=0; col<charWidth; col++){
+			GLCD_SetPixels(x+col, ceil(y+line),
+				font[sum + col + (int)ceil(charWidth*line/8.0)]
+			);
 		}
 	}
- 
+		
 }
+
+
 
 //-------------------------------------------------------------------------------------------------
 //
 //-------------------------------------------------------------------------------------------------
-void GLCD_WriteChar(char charToWrite)
+void GLCD_WriteString(uint8_t x, uint8_t y, char * stringToWrite, uint8_t* font)
 {
-	int i;
-	charToWrite -= 32; 
-	for(i = 0; i < 5; i++) 
-		GLCD_WriteData( font5x8[(5 * charToWrite) + i] ); 
-	GLCD_WriteData(0x00);
+	while(*stringToWrite){
+		GLCD_WriteChar(x,y,*stringToWrite++, font);
+		x+=font[2]+1;
+	}
 }
+
+
 
 //-------------------------------------------------------------------------------------------------
 //
 //-------------------------------------------------------------------------------------------------
-void GLCD_WriteString(char * stringToWrite)
-{
-	while(*stringToWrite)
-		GLCD_WriteChar(*stringToWrite++);
-}
-
-//-------------------------------------------------------------------------------------------------
-//
-//-------------------------------------------------------------------------------------------------
-void GLCD_SetPixel(uint8_t x, uint8_t y, uint8_t color)
+void GLCD_SetPixel(uint8_t x, uint8_t y)
 {
 	int idx = (KS0108_SCREEN_WIDTH * (y/8)) + x;
-//	framebuffer[idx] = framebuffer[idx] ^= (-color ^ framebuffer[idx]) & (1 << (y%8));
 	framebuffer[idx] |= 1 << y%8;
+}
+
+//-------------------------------------------------------------------------------------------------
+//
+//-------------------------------------------------------------------------------------------------
+void GLCD_SetPixels(uint8_t x, uint8_t y, uint8_t byte)
+{
+	int idx = (KS0108_SCREEN_WIDTH * (y/8)) + x;
+	int idx2 = (KS0108_SCREEN_WIDTH * ( (y/8)+1) ) + x;
+	uint8_t rest = y%8;
+	framebuffer[idx] |= ( byte << y%8 );
+	if(rest)
+		framebuffer[idx2] |= byte >> (8-y%8);
 
 }
 
