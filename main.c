@@ -7,6 +7,9 @@
 #include "fonts/metric02.h"  
 #include "fonts/metric04.h"  
 #include "fonts/pbar.h"  
+#include "fonts/pbar2.h"
+
+#include "bmps/chuva.h"  
 
 #include <math.h>
 #define PI 3.14159265
@@ -16,11 +19,10 @@ void drawPbar(uint8_t x, uint8_t y, uint8_t percent){
 	char string[30];
 	int tiles = ((120.0*percent)/100.0)/4;
 	for(int i=0; i<30; i++){
-		if 		(i==0)string[0] = tiles < 1 ? 0x00 : 0x01;
-		else if (i==29)string[29] = tiles < 30 ? 0x02 : 0x03;
-		else{
-			string[i] = i < tiles ? 0x04 : 0x05;
-		}
+		if 		(i==0)string[0] = tiles < 1 ? PBAR_INI : PBAR_INI_FILL;
+		else if (i==29)string[29] = tiles < 30 ? PBAR_END : PBAR_END_FILL;
+		else if (i==tiles) string[i] = PBAR_FILL_LAST;
+		else string[i] = i <= tiles ? PBAR_FILL : PBAR_EMPTY;
 	}
 	for(int i=0; i<30; i++){
 		GLCD_WriteChar(x,y,string[i], pbar);
@@ -29,24 +31,22 @@ void drawPbar(uint8_t x, uint8_t y, uint8_t percent){
 }
 
 int main(int argc, char** argv){
+
 	GLCD_Initalize();
-	printf("aqui...\n");
-
-
 	GLCD_ClearScreen();
-	char ptext[20];
-	for(int i=0; i<=100; i++){
+
+	char txt[20];
+	for(int i=0; i<=100 ; i++){
 		GLCD_ClearBuffer();
-
 		drawPbar(4,6,i);
-		sprintf(ptext,"DOWNLOAD %d%%",i);
-		GLCD_WriteString(8,0,ptext, metric01);
-
-
-
+		sprintf(txt,"DOWNLOAD %d%%",i);
+		GLCD_WriteString(6,0,txt,metric01);
+		GLCD_WriteString(50,35,"SCANING...",metric01);
 		GLCD_SyncBuffer();
-		bcm2835_delay(200);
+		bcm2835_delay(50);
 	}
+	
+
 }
 
 /*char string[10];
