@@ -59,14 +59,17 @@ public:
 	void clearScreen();
 	void clearBuffer();
 	void syncBuffer();
+	void wait(unsigned int);
 
 	void setPixel(uint8_t , uint8_t);
 	void setPixels(uint8_t , uint8_t, uint8_t);
-	void drawRect(uint8_t , uint8_t , uint8_t , uint8_t , uint8_t);
+	void drawRect(uint8_t , uint8_t , uint8_t , uint8_t);
 	void drawLine(uint8_t , uint8_t , uint8_t , uint8_t);
 
 	void writeChar(uint8_t, uint8_t, char , uint8_t* );
 	void writeString(uint8_t, uint8_t, char *, uint8_t* );
+
+	void shiftBufferHorizontal(int);
 };
 
 #endif // __KS0108PI_H_INCLUDED__

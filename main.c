@@ -30,31 +30,44 @@
 // 		x+=pbar[2];
 // 	}
 // }
+void tela(Ks0108pi *kspi)
+{
+	char string[256];
+	kspi->writeString(0,0,"TESTE",metric02);
+	kspi->writeString(60,0,"USADO",metric01);
+	kspi->writeString(60,7,"HOJE",metric01);
+	kspi->writeString(90,0,"2.3",metric02);
+	kspi->writeString(116,7,"kWh",metric01);
+	sprintf(string,"%d",12);
+	kspi->writeString(0,18,string,metric04);
+	kspi->writeString(0,52,"21.5*",metric02);
+	kspi->writeChar(84,18,0x00,batticon);
+}
 
 int main(int argc, char** argv){
 	Ks0108pi *kspi = new Ks0108pi();
 	kspi->init();
 
-	for(int i=0; i< 100; i++)
+	while(1)
 	{
-		kspi->clearScreen();
-		kspi->writeString(50+i,i/2,"TESTE",metric02);
-		kspi->writeChar(84,18,0x00,batticon);
-		kspi->syncBuffer();
-		bcm2835_delay(500);
-	}
+		kspi->clearBuffer();
 
-	// while(1)
-	// {
-	// 	GLCD_ClearBuffer();
-	// 	GLCD_WriteString(0,0,"TESTE",metric02);
-	// 	GLCD_WriteString(60,0,"USADO",metric01);
-	// 	GLCD_WriteString(60,7,"HOJE",metric01);
-	// 	GLCD_WriteString(90,0,"2.3",metric02);
-	// 	GLCD_WriteString(116,7,"kWh",metric01);
-	// 	GLCD_WriteString(0,18,"50135",metric04);
-	// 	GLCD_WriteString(0,52,"21.5*",metric02);
-	// 	GLCD_WriteChar(84,18,0x00,batticon);
-	// 	GLCD_SyncBuffer();
-	// }
+		//kspi->wait(1500);
+
+		for(int space=5; space>0; space--){
+			for(int i=0; i<128; ){
+				for(int j=0; j<64; )
+				{
+					kspi->setPixel(i,j);
+					j+=space;
+				}
+				i+=space;
+			}
+			kspi->wait(250);
+			kspi->syncBuffer();
+		}
+
+
+
+	}
 }

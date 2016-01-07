@@ -9,3 +9,6 @@ OBJ = main.o Ks0108pi.o
 
 main: $(OBJ)
 	$(CXX) -o $@ $^ $(CFLAGS) $(LIBS)
+
+clean:
+	rm main.o main

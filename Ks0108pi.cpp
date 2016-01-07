@@ -206,6 +206,14 @@ void Ks0108pi::syncBuffer()
 	}
 }
 
+//-------------------------------------------------------------------------------------------------
+//
+//-------------------------------------------------------------------------------------------------
+void Ks0108pi::wait(unsigned int millis)
+{
+	bcm2835_delay(millis);
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //
@@ -232,12 +240,10 @@ void Ks0108pi::setPixels(uint8_t x, uint8_t y, uint8_t byte)
 //-------------------------------------------------------------------------------------------------
 //
 //-------------------------------------------------------------------------------------------------
-void Ks0108pi::drawRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t fill){
-	if(fill){
-		for(int nx=x; nx<x+w ; nx++){
-			for(int ny=y; ny<y+h ; ny++){
-				setPixel(nx,ny);
-			}
+void Ks0108pi::drawRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h){
+	for(int nx=x; nx < x+w ; nx++){
+		for(int ny=y; ny < y+h ; ny++){
+			setPixel(nx,ny);
 		}
 	}
 }
@@ -312,4 +318,33 @@ void Ks0108pi::writeString(uint8_t x, uint8_t y, char * stringToWrite, uint8_t* 
 		writeChar(x,y,*stringToWrite++, font);
 		x+=font[2]+1;
 	}
+}
+
+void Ks0108pi::shiftBufferHorizontal(int x)
+{
+	uint8_t *originalfb = new uint8_t[framebuffer_size];
+
+	//backup of current framebuffer
+	std::copy(framebuffer, framebuffer+framebuffer_size, originalfb);
+	this->clearBuffer();
+
+	int x_original;
+	int x_new;
+
+
+	// line scan
+	for(int y=0; y<SCREEN_HEIGHT/8; y++)
+	{
+		//x scan
+		x_original = x < 0 ? x*-1 : 0;
+		x_new = x < 0 ? 0 : x ;
+		while(x_original < SCREEN_WIDTH && x_new < SCREEN_WIDTH)
+		{
+			this->setPixels(x_new, y*8, originalfb[ (y*SCREEN_WIDTH) + x_original ] );
+			x_original ++;
+			x_new ++;
+		}
+	}
+
+
 }
