@@ -52,7 +52,18 @@ private:
 	void enableController(uint8_t);
 	void disableController(uint8_t);
 
+
+
 public:
+
+	enum DrawStyle
+	{
+		STYLE_WHITE_BG = 1 << 0,
+		STYLE_BLACK_BG = 1 << 1,
+		STYLE_GRAY_BG = 1 << 2,
+		STYLE_WHITE_BORDER = 1 << 3,
+		STYLE_BLACK_BORDER = 1 << 4,
+	};
 
 	Ks0108pi();
 	int init();
@@ -62,8 +73,11 @@ public:
 	void wait(unsigned int);
 
 	void setPixel(uint8_t , uint8_t);
+	void clearPixel(uint8_t , uint8_t);
 	void setPixels(uint8_t , uint8_t, uint8_t);
-	void drawRect(uint8_t , uint8_t , uint8_t , uint8_t);
+
+	void drawRect(uint8_t , uint8_t , uint8_t , uint8_t, uint8_t);
+
 	void drawLine(uint8_t , uint8_t , uint8_t , uint8_t);
 
 	void writeChar(uint8_t, uint8_t, char , uint8_t* );

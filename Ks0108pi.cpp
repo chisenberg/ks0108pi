@@ -65,10 +65,11 @@ int Ks0108pi::init(void)
 	bcm2835_gpio_fsel(PIN_D6, 	BCM2835_GPIO_FSEL_OUTP);
 	bcm2835_gpio_fsel(PIN_D7, 	BCM2835_GPIO_FSEL_OUTP);
 
+	// initialize controllers
 	for(int i = 0; i < 3; i++)
 		writeCommand((DISPLAY_ON_CMD | ON), i);
 
-	//zera framebuffer
+	//
 	framebuffer_size = (SCREEN_WIDTH * SCREEN_HEIGHT)/8;
 	framebuffer = new uint8_t[framebuffer_size];
 	std::fill_n(framebuffer,framebuffer_size, 0);
@@ -227,6 +228,15 @@ void Ks0108pi::setPixel(uint8_t x, uint8_t y)
 //-------------------------------------------------------------------------------------------------
 //
 //-------------------------------------------------------------------------------------------------
+void Ks0108pi::clearPixel(uint8_t x, uint8_t y)
+{
+	int idx = (SCREEN_WIDTH * (y/8)) + x;
+	framebuffer[idx] &= ~(1 << y%8);
+}
+
+//-------------------------------------------------------------------------------------------------
+//
+//-------------------------------------------------------------------------------------------------
 void Ks0108pi::setPixels(uint8_t x, uint8_t y, uint8_t byte)
 {
 	int idx = (SCREEN_WIDTH * (y/8)) + x;
@@ -240,11 +250,25 @@ void Ks0108pi::setPixels(uint8_t x, uint8_t y, uint8_t byte)
 //-------------------------------------------------------------------------------------------------
 //
 //-------------------------------------------------------------------------------------------------
-void Ks0108pi::drawRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h){
-	for(int nx=x; nx < x+w ; nx++){
-		for(int ny=y; ny < y+h ; ny++){
-			setPixel(nx,ny);
+void Ks0108pi::drawRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t style){
+	for(int nx=x; nx < (x+w) ; nx++){
+		for(int ny=y; ny < (y+h) ; ny++){
+			if(style & STYLE_BLACK_BG) setPixel(nx,ny);
+			else if(style & STYLE_WHITE_BG) clearPixel(nx,ny);
+			else if(style & STYLE_GRAY_BG){
+				if((nx+ny)%2==0)
+					clearPixel(nx,ny);
+				else
+					setPixel(nx,ny);
+			}
 		}
+	}
+
+	if( (style & STYLE_BLACK_BORDER) || (style & STYLE_WHITE_BORDER)) {
+		drawLine(x,y,(x+w)-1,y);
+		drawLine(x,(y+h)-1,(x+w)-1,(y+h)-1);
+		drawLine(x,y,x,(y+h)-1);
+		drawLine((x+w)-1,y,(x+w)-1,(y+h)-1);
 	}
 }
 
